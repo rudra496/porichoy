@@ -21,7 +21,7 @@ describe('multi-sheet ingest (per-department files)', () => {
     const rec = st.records.find((r) => r.poId === 'PO-1')!;
     expect(rec.attrs['product_name'].value).toBe('Polo');
     expect(rec.attrs['care_info'].value).toBe('Wash 30C');
-    expect(rec.filled).toBe(3); // po_id + product_name + care_info
+    expect(rec.filled).toBe(4); // po_id + product_name + recycled_pct + care_info
     expect(st.chain.map((l) => l.poId)).toEqual(['PO-1']); // chained once, not twice
   });
   it('does not mutate the previous state object', async () => {
