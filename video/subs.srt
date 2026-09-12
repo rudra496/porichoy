@@ -1,0 +1,24 @@
+1
+00:00:00,000 --> 00:00:18,690
+From 2027, Europe's Digital Product Passport rules phase in — and EU customs will automatically check every imported garment's passport. If a Bangladeshi factory cannot produce that data, it loses the order.
+
+2
+00:00:18,840 --> 00:00:47,130
+The data already exists inside the factory — scattered across Excel sheets in mixed Bangla and English, legacy E R P exports, and paper records. Porichoy turns that chaos into compliance. Watch: we load a factory's messy files — every production order gets a D P P Readiness Score out of one hundred, with the exact gaps listed.
+
+3
+00:00:47,280 --> 00:01:08,280
+One click publishes a Q R code. Scan it, and the buyer sees the full Digital Product Passport — every attribute anchored to the exact EU regulation, and traced back to the exact source column it came from. No backend, and no data leaving the factory.
+
+4
+00:01:08,430 --> 00:01:29,160
+The business model: factories subscribe from two to eight thousand taka a month; onboarding is a one-time fee; and brands pay to bring their own suppliers online before the deadline. The pollination grant funds a ten-factory pilot with certified women data stewards.
+
+5
+00:01:29,310 --> 00:01:44,810
+Porichoy is built by Rudra Sarker, final-year Industrial and Production Engineering at SUST — the engineer behind AdalatAI, JolSetu and RippleUp. This is his full-time commitment.
+
+6
+00:01:44,960 --> 00:02:06,250
+And at the center are women: two stewards per factory, trained and certified — new skilled jobs, and protected livelihoods for a majority-women workforce. The last mile of the Digital Product Passport runs through Bangladesh's factory floor — and it will be walked by its women.
+
