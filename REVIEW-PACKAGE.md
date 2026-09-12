@@ -1,7 +1,19 @@
-# 📦 PORICHOY × NIC 3.0 — FINAL REVIEW PACKAGE
+# 📦 PORICHOY × NIC 3.0 — FINAL REVIEW PACKAGE (v2.0)
 
-**Built by Rudra Junior · 2026-09-13 · Deadline: 3 October 2026**
+**Updated by Rudra Junior · 2026-09-13 · Deadline: 3 October 2026**
 **STATUS: everything built & verified — AWAITING RUDRA SIR'S REVIEW. Nothing is submitted.**
+
+## 0. What v2.0 added (2026-09-13, his directive: "more professional + Q1 papers + more features")
+
+| Addition | Verified how |
+|---|---|
+| **Evidence base: 16 peer-reviewed papers** (EU DPP regulation, traceability tech, Bangladesh RMG compliance, circular economy — incl. two 7,000+ citation foundations in Journal of Cleaner Production / Resources, Conservation & Recycling) | Every DOI resolved LIVE via Crossref API 2026-09-13; metadata copied verbatim from API JSON; cached in `state/citations_cache.json`; rendered on the app's **Evidence page** with DOI links |
+| **Professional redesign**: gradient brand mark, stat strip (≈4M workers BGMEA · #2 exporter · 2027–30 EU wall — each with source label), eyebrow badge, card shadows, refined nav/footer | Visual judge pass on landing, dashboard, PO detail, evidence page (3 issues found & fixed: nav overlap, mid-word column breaks, DOI wrapping → re-judged PASS) |
+| **Steward gap-filling (edit-in-place)**: click Add on any missing attribute → type value → Save → score updates instantly + provenance chain extends + published QR invalidated for re-publish | Live browser test: PO-1003 scored 45→60, value attributed "ম্যানুয়াল এন্ট্রি — স্টুয়ার্ড", chain 4→5 links |
+| **Exports**: readiness report CSV (dashboard) + passport JSON (PO page) | Buttons render + download (Blob) |
+| **Sample file downloads** in Upload page | /porichoy/samples/*.xlsx + *.csv return HTTP 200 |
+| **SUBMISSION_CHECKLIST.md** — every form field (extracted from their app bundle) mapped to our answer + word-limit status | docs/SUBMISSION_CHECKLIST.md |
+| CIRPASS-2 textile-pilot wording | verified on cirpass2.eu 2026-09-13 ("pilot deployments and use cases in textiles, electronics, tires…") |
 
 ---
 
