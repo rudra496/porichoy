@@ -36,6 +36,14 @@ const STRINGS: Record<string, { en: string; bn: string }> = {
   conflicts: { en: 'Conflicting values found', bn: 'অসঙ্গত মান পাওয়া গেছে' },
   noPos: { en: 'No production orders yet — upload your first file.', bn: 'এখনও কোনো অর্ডার নেই — প্রথম ফাইল আপলোড করুন।' },
   back: { en: 'Back', bn: 'ফিরে যান' },
+  evidence: { en: 'Evidence', bn: 'প্রমাণভিত্তি' },
+  addValue: { en: 'Add', bn: 'যোগ করুন' },
+  save: { en: 'Save', bn: 'সংরক্ষণ' },
+  cancel: { en: 'Cancel', bn: 'বাতিল' },
+  downloadReport: { en: 'Download readiness report (CSV)', bn: 'রেডিনেস রিপোর্ট (CSV) ডাউনলোড' },
+  downloadPassport: { en: 'Download passport (JSON)', bn: 'পাসপোর্ট (JSON) ডাউনলোড' },
+  manualEntry: { en: 'Manual entry — steward', bn: 'ম্যানুয়াল এন্ট্রি — স্টুয়ার্ড' },
+  samples: { en: 'No file yet? Try the messy samples:', bn: 'ফাইল নেই? নমুনা ফাইল দেখুন:' },
 };
 
 export function t(id: string, lang: Lang): string {

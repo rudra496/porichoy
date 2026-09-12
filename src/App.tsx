@@ -9,6 +9,7 @@ import Upload from './pages/Upload';
 import PoDetail from './pages/PoDetail';
 import Passport from './pages/Passport';
 import Method from './pages/Method';
+import Evidence from './pages/Evidence';
 
 export default function App() {
   const [state, setState] = useState<FactoryState>(() => loadState());
@@ -36,6 +37,7 @@ export default function App() {
           </Link>
           <nav className="navlinks">
             <NavLink to="/app">{t('dashboard', state.lang)}</NavLink>
+            <NavLink to="/evidence">{t('evidence', state.lang)}</NavLink>
             <NavLink to="/method">{t('method', state.lang)}</NavLink>
             <button className="lang-btn" onClick={toggleLang} aria-label="toggle language">
               {state.lang === 'en' ? 'বাংলা' : 'EN'}
@@ -51,13 +53,17 @@ export default function App() {
           <Route path="/app/po/:id" element={<PoDetail state={state} setState={setState} />} />
           <Route path="/pp" element={<Passport state={state} setState={setState} />} />
           <Route path="/method" element={<Method />} />
+          <Route path="/evidence" element={<Evidence />} />
         </Routes>
       </main>
       {!onPassportPage && (
         <footer className="footer">
-          <span>Porichoy (পরিচয়) v1.0 — DPP schema v0.1 · local-first pilot</span>
+          <span>
+            Porichoy (পরিচয়) v2.0 — DPP schema v0.1 · local-first pilot ·{' '}
+            <a href="https://github.com/rudra496/porichoy" target="_blank" rel="noreferrer">GitHub</a>
+          </span>
           <span className="footer-dim">
-            Built for Needle Innovation Challenge 3.0 · {new Date().getFullYear()}
+            16 Crossref-verified studies · facts sourced live · Built for Needle Innovation Challenge 3.0 · {new Date().getFullYear()}
           </span>
         </footer>
       )}

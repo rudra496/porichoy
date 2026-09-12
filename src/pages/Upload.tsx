@@ -94,6 +94,12 @@ export default function Upload({
           ref={fileRef} type="file" accept=".xlsx,.xls,.csv" hidden
           onChange={(e) => { const f = e.target.files?.[0]; if (f) void handleFile(f); }}
         />
+        <p className="muted" style={{ marginTop: 12 }}>
+          {t('samples', lang)}{' '}
+          <a href="/porichoy/samples/porichoy-sample-factory-data.xlsx" download>Excel (3 sheets)</a>
+          {' · '}
+          <a href="/porichoy/samples/porichoy-sample-sewing-po.csv" download>CSV</a>
+        </p>
       </div>
       {err && <div className="notice">⚠ {err}</div>}
 

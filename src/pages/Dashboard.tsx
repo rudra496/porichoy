@@ -32,6 +32,28 @@ export default function Dashboard({
     setBusy(false);
   };
 
+  const downloadReport = () => {
+    const rows = [['po_id', 'product', 'dpp_readiness_score', 'band', 'missing_attributes']];
+    for (const { rec, s } of scored) {
+      const b = scoreBand(s.score);
+      rows.push([
+        rec.poId ?? '',
+        rec.attrs['product_name']?.value ?? '',
+        String(s.score),
+        b.label,
+        s.perAttr.filter((a) => !a.ok).map((a) => a.key).join('; '),
+      ]);
+    }
+    const csv = rows.map((r) => r.map((c) => `"${c.replace(/"/g, '""')}"`).join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'porichoy-readiness-report.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div>
       <div className="grid2" style={{ alignItems: 'stretch' }}>
@@ -62,6 +84,9 @@ export default function Dashboard({
             <button className="btn btn-ghost" disabled={busy} onClick={loadSample}>
               {lang === 'bn' ? 'নমুনা ডেটা লোড করুন' : 'Load sample data'}
             </button>
+            {scored.length > 0 && (
+              <button className="btn btn-ghost" onClick={downloadReport}>{t('downloadReport', lang)}</button>
+            )}
           </div>
           <p className="muted" style={{ marginTop: 10, marginBottom: 0 }}>{t('localFirst', lang)}</p>
         </div>

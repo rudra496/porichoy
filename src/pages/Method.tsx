@@ -1,4 +1,5 @@
 import { DPP_SCHEMA_V01, SCHEMA_VERSION } from '../engine/schema';
+import { EVIDENCE } from '../evidence';
 
 const FACTS: { claim: string; source: string }[] = [
   { claim: 'ESPR (EU 2024/1781) entered into force 18 July 2024', source: 'European Commission, ESPR page (fetched 2026-09-12)' },
@@ -34,9 +35,21 @@ export default function Method() {
         </table>
       </div>
       <p className="muted" style={{ marginTop: 8 }}>
-        Schema v0.1 aligns to ESPR Art. 8 content categories and CIRPASS-2 textile-pilot
-        attribute families. The textile delegated act is still a draft — the mapping layer is
-        versioned so final rules are a config change, not a rebuild.
+        Schema v0.1 aligns to ESPR Art. 8 content categories and the public taxonomies of
+        CIRPASS-2 — the EU co-funded DPP preparatory project whose pilots cover textiles,
+        electronics, tires and construction (verified on cirpass2.eu, 2026-09-13). The textile
+        delegated act is still a draft — the mapping layer is versioned so final rules are a
+        config change, not a rebuild.
+      </p>
+
+      <h3 className="section-title" style={{ fontSize: 17 }}>Readiness Score methodology</h3>
+      <p className="muted">
+        Score = (sum of weights of validated attributes) ÷ 100, per production order. A valid
+        unique identifier (po_id) is mandatory — without it the order is structurally invalid
+        and scores 0. Values are type-checked (percentages incl. Bangla numerals, dates);
+        duplicate rows merge, conflicting values are flagged to the steward, never silently
+        overwritten. Every accepted value — ingested or manually entered by a certified
+        steward — extends the SHA-256 provenance chain and re-scores the order instantly.
       </p>
 
       <h3 className="section-title" style={{ fontSize: 17 }}>Mapping engine (deterministic, offline)</h3>
@@ -68,6 +81,15 @@ export default function Method() {
           </tbody>
         </table>
       </div>
+
+      <h3 className="section-title" style={{ fontSize: 17 }}>Peer-reviewed evidence</h3>
+      <p className="muted">
+        The claims above and the design of this product are grounded in a live-verified
+        literature base: {EVIDENCE.length} peer-reviewed works (EU DPP regulation, textile
+        supply-chain traceability, Bangladesh RMG compliance, circular economy) — every DOI
+        resolved via the Crossref API on 2026-09-13 with metadata copied verbatim.
+        See the <a href="#/evidence">Evidence page</a> for the full table.
+      </p>
 
       <h3 className="section-title" style={{ fontSize: 17 }}>What the pilot is not (yet)</h3>
       <p className="muted">

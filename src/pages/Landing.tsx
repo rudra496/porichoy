@@ -1,12 +1,13 @@
 import { Link } from 'react-router-dom';
 import { t, type Lang } from '../engine/i18n';
+import { EVIDENCE } from '../evidence';
 
 export default function Landing({ lang }: { lang: Lang }) {
   return (
     <div>
       <section className="hero">
         <div>
-          <span className="chip chip-neutral">Needle Innovation Challenge 3.0 · “Better Process” focus area</span>
+          <span className="hero-eyebrow">Needle Innovation Challenge 3.0 · “Better Process” focus area</span>
           <h1>
             {t('tagline', lang).split(' ').slice(0, -2).join(' ')}{' '}
             <span className="hl">{t('tagline', lang).split(' ').slice(-2).join(' ')}</span>
@@ -15,6 +16,7 @@ export default function Landing({ lang }: { lang: Lang }) {
           <div className="cta-row">
             <Link className="btn btn-primary" to="/app">{t('ctaStart', lang)}</Link>
             <Link className="btn btn-ghost" to="/pp?id=PO-1002">{t('ctaDemo', lang)}</Link>
+            <Link className="btn btn-ghost" to="/evidence">{t('evidence', lang)} ↗</Link>
           </div>
           <p className="muted" style={{ marginTop: 18 }}>{t('localFirst', lang)}</p>
         </div>
@@ -30,6 +32,27 @@ export default function Landing({ lang }: { lang: Lang }) {
           </div>
         </div>
       </section>
+
+      <div className="statstrip">
+        <div className="stat">
+          <div className="num">≈4 million</div>
+          <div className="lbl">RMG workers in Bangladesh, the majority women</div>
+          <div className="src">BGMEA</div>
+        </div>
+        <div className="stat">
+          <div className="num">#2 exporter</div>
+          <div className="lbl">world’s ready-made garments — Europe the biggest market</div>
+          <div className="src">NIC 3.0 call · BGMEA</div>
+        </div>
+        <div className="stat">
+          <div className="num">2027–30</div>
+          <div className="lbl">EU Digital Product Passport obligations phase in; customs auto-checks</div>
+          <div className="src">European Commission (ESPR)</div>
+        </div>
+      </div>
+      <p className="muted" style={{ fontSize: 12.5, marginBottom: 4 }}>
+        Method &amp; honesty: {EVIDENCE.length} peer-reviewed studies (Crossref-verified DOIs) back this product — <Link to="/evidence">see the evidence base</Link>.
+      </p>
 
       <h2 className="section-title">{lang === 'bn' ? '৯০ সেকেন্ডে কীভাবে কাজ করে' : 'How it works — 90 seconds'}</h2>
       <div className="flow">
