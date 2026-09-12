@@ -1,6 +1,8 @@
 /**
- * Ingest pipeline: headers+rows -> suggested mapping (learned rules override)
- * -> records -> merge into state + extend the provenance chain.
+ * Ingest pipeline: per-sheet processing -> sequential immutable merge into
+ * factory state -> provenance chain extension for every keyed record.
+ * Each sheet/file keeps its own header vocabulary (a department's "PO No" and
+ * the sewing floor's "লট নং" both land on po_id independently).
  */
 import { mapColumns, buildRecords } from './engine/mapping';
 import type { DppRecord, ColumnSuggestion } from './engine/mapping';
@@ -21,17 +23,15 @@ export interface IngestResult {
   records: DppRecord[];
   conflicts: { poId: string; field: string; values: string[] }[];
   rowsIn: number;
-  newCount: number;
-  chain: ChainLink[];
+  sourceFile: string;
 }
 
+/** Learned factory vocabulary overrides fresh suggestions. */
 export function suggestMapping(
   headers: string[],
   learnedRules: Record<string, string>,
 ): ColumnSuggestion[] {
-  const base = mapColumns(headers);
-  // learned factory vocabulary overrides fresh suggestions
-  return base.map((s) => {
+  return mapColumns(headers).map((s) => {
     const learned = learnedRules[normalizeHeader(s.header)] ?? learnedRules[s.header.toLowerCase().trim()];
     if (learned) {
       return { ...s, attrKey: learned, attrEn: learned, confidence: 1, method: 'pattern' as const };
@@ -40,60 +40,57 @@ export function suggestMapping(
   });
 }
 
-export function ingest(
-  headers: string[],
-  rows: Record<string, unknown>[],
-  sourceFile: string,
-  state: FactoryState,
+/** Pure per-sheet processing (no state merge). */
+export function processSheet(
+  sheet: SheetInput,
+  learnedRules: Record<string, string>,
   overrideMapping?: ColumnSuggestion[],
 ): IngestResult {
-  const suggestions = overrideMapping ?? suggestMapping(headers, state.learnedRules);
-  const { records, conflicts, rowsIn } = buildRecords(headers, rows, suggestions);
+  const suggestions = overrideMapping ?? suggestMapping(sheet.headers, learnedRules);
+  const { records, conflicts, rowsIn } = buildRecords(sheet.headers, sheet.rows, suggestions);
+  return { suggestions, records, conflicts, rowsIn, sourceFile: sheet.name };
+}
 
-  // merge into existing records by poId (existing values win; missing filled in)
+/** Immutable merge of one sheet's records into the state. */
+export function mergeSheet(state: FactoryState, res: IngestResult): FactoryState {
   const byId = new Map(state.records.map((r) => [r.poId ?? '', r]));
-  let newCount = 0;
-  for (const rec of records) {
-    const id = rec.poId ?? '';
-    const prev = byId.get(id);
+  for (const rec of res.records) {
+    const prev = byId.get(rec.poId ?? '');
     if (!prev) {
-      byId.set(id, rec);
-      newCount++;
+      byId.set(rec.poId ?? '', rec);
     } else {
+      const attrs = { ...prev.attrs };
       for (const [k, c] of Object.entries(rec.attrs)) {
-        if (c.raw && !prev.attrs[k].raw) prev.attrs[k] = c;
+        if (c.raw && !attrs[k].raw) attrs[k] = c;
       }
-      prev.filled = Object.values(prev.attrs).filter((a) => a.ok).length;
+      const merged = { ...prev, attrs, filled: Object.values(attrs).filter((a) => a.ok).length };
+      byId.set(merged.poId ?? '', merged);
     }
   }
-  return { suggestions, records, conflicts, rowsIn, newCount, chain: state.chain };
+  const learnedRules = { ...state.learnedRules };
+  for (const s of res.suggestions) {
+    if (s.attrKey && s.confidence >= 0.92) {
+      learnedRules[s.header.toLowerCase().trim()] = s.attrKey;
+    }
+  }
+  return { ...state, records: [...byId.values()], learnedRules };
 }
 
-/** Async ingest: extends the hash chain for every new, keyed record. */
-export async function ingestAsync(
-  headers: string[],
-  rows: Record<string, unknown>[],
-  sourceFile: string,
-  state: FactoryState,
-  overrideMapping?: ColumnSuggestion[],
-): Promise<IngestResult> {
-  const base = ingest(headers, rows, sourceFile, state, overrideMapping);
+/** Extend the chain for keyed records not yet chained. */
+export async function extendChain(state: FactoryState, res: IngestResult): Promise<ChainLink[]> {
   let chain = state.chain;
-  for (const rec of base.records) {
-    if (rec.poId && !rec.poId.startsWith('UNKEYED-')) {
-      const alreadyChained = chain.some((l) => l.poId === rec.poId);
-      if (!alreadyChained) {
-        const attrsJson = JSON.stringify(
-          Object.fromEntries(Object.entries(rec.attrs).filter(([, c]) => c.ok).map(([k, c]) => [k, c.value])),
-        );
-        chain = [...chain, await makeLink(chain, rec.poId, attrsJson, sourceFile)];
-      }
+  for (const rec of res.records) {
+    if (rec.poId && !rec.poId.startsWith('UNKEYED-') && !chain.some((l) => l.poId === rec.poId)) {
+      const attrsJson = JSON.stringify(
+        Object.fromEntries(Object.entries(rec.attrs).filter(([, c]) => c.ok).map(([k, c]) => [k, c.value])),
+      );
+      chain = [...chain, await makeLink(chain, rec.poId, attrsJson, res.sourceFile)];
     }
   }
-  return { ...base, chain };
+  return chain;
 }
 
-/** Ingest several sheets/files sequentially, chaining + merging as we go. */
+/** Full pipeline: ingest several sheets sequentially, chaining as we go. */
 export async function ingestSheets(
   sheets: SheetInput[],
   state: FactoryState,
@@ -103,25 +100,9 @@ export async function ingestSheets(
   const results: IngestResult[] = [];
   for (let i = 0; i < sheets.length; i++) {
     const s = sheets[i];
-    const res = await ingestAsync(s.headers, s.rows, s.name, cur, mappings?.[i]);
-    cur = mergeState(cur, res);
+    const res = processSheet(s, cur.learnedRules, mappings?.[i]);
+    cur = { ...mergeSheet(cur, res), chain: await extendChain(cur, res) };
     results.push(res);
   }
   return { results, finalState: cur };
-}
-
-export function mergeState(state: FactoryState, res: IngestResult): FactoryState {
-  const byId = new Map(state.records.map((r) => [r.poId ?? '', r]));
-  for (const rec of res.records) byId.set(rec.poId ?? '', rec);
-  return {
-    ...state,
-    records: [...byId.values()],
-    chain: res.chain,
-    learnedRules: Object.fromEntries(
-      Object.entries(state.learnedRules).concat(
-        res.suggestions.filter((s) => s.attrKey && s.method === 'pattern' && s.confidence >= 0.92)
-          .map((s) => [s.header.toLowerCase().trim(), s.attrKey as string]),
-      ),
-    ),
-  };
 }

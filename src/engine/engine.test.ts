@@ -4,6 +4,35 @@ import { DPP_SCHEMA_V01, TOTAL_WEIGHT } from './schema';
 import { readinessScore } from './score';
 import { makeLink, verifyChain, GENESIS } from './provenance';
 import type { ChainLink } from './provenance';
+import { mergeSheet, processSheet, extendChain } from './ingest';
+import type { FactoryState } from '../store';
+
+describe('multi-sheet ingest (per-department files)', () => {
+  const EMPTY: FactoryState = {
+    lang: 'en', factoryName: 'F', records: [], chain: [], learnedRules: {}, published: {},
+  };
+  it('merges attributes for the same PO across sheets without losing earlier values', async () => {
+    const s1 = processSheet({ name: 'sewing', headers: ['PO No', 'Item Description', 'Recycled %'], rows: [{ 'PO No': 'PO-1', 'Item Description': 'Polo', 'Recycled %': '20%' }] }, {});
+    let st = mergeSheet(EMPTY, s1);
+    st = { ...st, chain: await extendChain(st, s1) };
+    const s2 = processSheet({ name: 'finishing', headers: ['Order Number', 'Wash Care'], rows: [{ 'Order Number': 'PO-1', 'Wash Care': 'Wash 30C' }] }, {});
+    st = mergeSheet(st, s2);
+    st = { ...st, chain: await extendChain(st, s2) };
+    const rec = st.records.find((r) => r.poId === 'PO-1')!;
+    expect(rec.attrs['product_name'].value).toBe('Polo');
+    expect(rec.attrs['care_info'].value).toBe('Wash 30C');
+    expect(rec.filled).toBe(3); // po_id + product_name + care_info
+    expect(st.chain.map((l) => l.poId)).toEqual(['PO-1']); // chained once, not twice
+  });
+  it('does not mutate the previous state object', async () => {
+    const s1 = processSheet({ name: 'a', headers: ['PO No', 'Item Description'], rows: [{ 'PO No': 'PO-1', 'Item Description': 'X' }] }, {});
+    const st1 = mergeSheet(EMPTY, s1);
+    const s2 = processSheet({ name: 'b', headers: ['PO No', 'Wash Care'], rows: [{ 'PO No': 'PO-1', 'Wash Care': 'Y' }] }, {});
+    const st2 = mergeSheet(st1, s2);
+    expect(st1.records[0].attrs['care_info'].raw).toBe('');
+    expect(st2.records[0].attrs['care_info'].value).toBe('Y');
+  });
+});
 
 describe('header normalization', () => {
   it('strips punctuation/units and transliterates Bangla digits', () => {
