@@ -18,7 +18,7 @@ body { margin: 0; background: var(--bg); color: var(--ink); }
 .shell { min-height: 100vh; display: flex; flex-direction: column; }
 main { flex: 1; width: 100%; max-width: 1080px; margin: 0 auto; padding: 24px 20px 60px; }
 
-.nav { display: flex; align-items: center; justify-content: space-between; padding: 13px 22px; background: rgba(255,255,255,.92); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 5; }
+.nav { display: flex; align-items: center; justify-content: space-between; padding: 13px 22px; background: #fff; border-bottom: 1px solid var(--line); z-index: 5; }
 .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--ink); font-weight: 800; font-size: 20px; }
 .brand-mark { display: inline-grid; place-items: center; width: 34px; height: 34px; border-radius: 10px; background: linear-gradient(135deg, #4f46e5, #7c3aed); color: #fff; font-size: 18px; box-shadow: 0 2px 8px rgba(79,70,229,.35); }
 .brand-sub { font-size: 12px; font-weight: 600; color: var(--accent); background: var(--accent-soft); padding: 3px 8px; border-radius: 999px; }
@@ -65,10 +65,13 @@ main { flex: 1; width: 100%; max-width: 1080px; margin: 0 auto; padding: 24px 20
 .score-num { font-size: 42px; font-weight: 900; line-height: 1; }
 .band { font-weight: 700; font-size: 14px; padding: 4px 12px; border-radius: 999px; color: #fff; display: inline-block; }
 
-table.tbl { width: 100%; border-collapse: collapse; font-size: 14px; }
-.tbl th, .tbl td { text-align: left; padding: 9px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+table.tbl { width: 100%; min-width: 660px; border-collapse: collapse; font-size: 14px; }
+.card { overflow-x: auto; }
+.tbl th, .tbl td { text-align: left; padding: 9px 10px; border-bottom: 1px solid var(--line); vertical-align: top; word-break: normal; hyphens: none; overflow-wrap: break-word; }
 .tbl th { font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--ink-soft); }
 .tbl tr:hover td { background: #fafaff; }
+.tbl .mono, .tbl a.mono { white-space: nowrap; }
+.tbl td.mono { white-space: normal; word-break: break-word; }
 
 .chip { font-size: 12px; font-weight: 700; border-radius: 999px; padding: 3px 10px; display: inline-block; }
 .chip-hi { background: #dcfce7; color: var(--ok); }
