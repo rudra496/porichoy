@@ -1,0 +1,12 @@
+{
+  "name": "Porichoy — DPP-in-a-Box",
+  "short_name": "Porichoy",
+  "description": "Turns factory records into buyer-ready EU Digital Product Passports, powered by women data stewards",
+  "start_url": "/porichoy/",
+  "display": "standalone",
+  "background_color": "#f6f6fb",
+  "theme_color": "#1e1b4b",
+  "icons": [
+    { "src": "/porichoy/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}
