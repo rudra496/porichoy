@@ -4,13 +4,14 @@ import * as XLSX from 'xlsx';
 import type { FactoryState } from '../store';
 import type { ColumnSuggestion } from '../engine/mapping';
 import { DPP_SCHEMA_V01 } from '../engine/schema';
-import { suggestMapping, ingestAsync, mergeState } from '../ingest';
+import { suggestMapping, ingestSheets } from '../ingest';
 import { t } from '../engine/i18n';
 
-interface Parsed {
-  fileName: string;
+interface ParsedSheet {
+  name: string;
   headers: string[];
   rows: Record<string, unknown>[];
+  mapping: ColumnSuggestion[];
 }
 
 export default function Upload({
@@ -22,8 +23,7 @@ export default function Upload({
 }) {
   const nav = useNavigate();
   const fileRef = useRef<HTMLInputElement>(null);
-  const [parsed, setParsed] = useState<Parsed | null>(null);
-  const [mapping, setMapping] = useState<ColumnSuggestion[]>([]);
+  const [sheets, setSheets] = useState<ParsedSheet[] | null>(null);
   const [err, setErr] = useState('');
   const [busy, setBusy] = useState(false);
   const lang = state.lang;
@@ -33,31 +33,43 @@ export default function Upload({
     try {
       const buf = await f.arrayBuffer();
       const wb = XLSX.read(buf, { type: 'array' });
-      const ws = wb.Sheets[wb.SheetNames[0]];
-      const json = XLSX.utils.sheet_to_json<Record<string, unknown>>(ws, { defval: null });
-      if (!json.length) throw new Error('no rows found in first sheet');
-      const headers = Object.keys(json[0]);
-      setParsed({ fileName: f.name, headers, rows: json });
-      setMapping(suggestMapping(headers, state.learnedRules));
+      const parsed: ParsedSheet[] = [];
+      for (const name of wb.SheetNames) {
+        const json = XLSX.utils.sheet_to_json<Record<string, unknown>>(wb.Sheets[name], { defval: null });
+        if (!json.length) continue;
+        const headers = Object.keys(json[0]);
+        parsed.push({ name, headers, rows: json, mapping: suggestMapping(headers, state.learnedRules) });
+      }
+      if (!parsed.length) throw new Error('no readable rows in any sheet');
+      setSheets(parsed);
     } catch (e) {
       setErr(e instanceof Error ? e.message : String(e));
     }
   };
 
-  const setAttr = (header: string, attrKey: string) => {
-    setMapping((ms) => ms.map((m) => (m.header === header
-      ? { ...m, attrKey: attrKey || null, attrEn: DPP_SCHEMA_V01.find((a) => a.key === attrKey)?.en ?? null, confidence: attrKey ? 1 : 0, method: attrKey ? ('pattern' as const) : ('none' as const) }
-      : m)));
+  const setAttr = (si: number, header: string, attrKey: string) => {
+    setSheets((ss) => (ss ?? []).map((s, i) => (i !== si ? s : ({
+      ...s,
+      mapping: s.mapping.map((m) => (m.header === header
+        ? { ...m, attrKey: attrKey || null, attrEn: DPP_SCHEMA_V01.find((a) => a.key === attrKey)?.en ?? null, confidence: attrKey ? 1 : 0, method: attrKey ? ('pattern' as const) : ('none' as const) }
+        : m)),
+    }))));
   };
 
   const confirm = async () => {
-    if (!parsed) return;
+    if (!sheets) return;
     setBusy(true);
-    const res = await ingestAsync(parsed.headers, parsed.rows, parsed.fileName, state, mapping);
-    setState((s) => mergeState(s, res));
+    const { finalState } = await ingestSheets(
+      sheets.map((s) => ({ name: `${sheets.length > 1 ? s.name : 'uploaded'} · ${s.rows.length} rows`, headers: s.headers, rows: s.rows })),
+      state,
+      sheets.map((s) => s.mapping),
+    );
+    setState(finalState);
     setBusy(false);
     nav('/app');
   };
+
+  const totalRows = sheets?.reduce((a, s) => a + s.rows.length, 0) ?? 0;
 
   return (
     <div>
@@ -75,8 +87,8 @@ export default function Upload({
         <b>{lang === 'bn' ? 'এক্সেল বা সিএসভি ফাইল টেনে আনুন' : 'Drop an Excel (.xlsx) or CSV file'}</b>
         <p className="muted">
           {lang === 'bn'
-            ? 'প্রথম শিট পড়া হবে · বাংলা/ইংরেজি মিশ্র হেডার সমর্থিত · কিছুই সার্ভারে যায় না'
-            : 'First sheet is read · Bangla/English/mixed headers supported · nothing leaves this device'}
+            ? 'সব শিট আলাদাভাবে পড়া হয় · বাংলা/ইংরেজি মিশ্র হেডার সমর্থিত · কিছুই সার্ভারে যায় না'
+            : 'Every sheet is read separately · Bangla/English/mixed headers supported · nothing leaves this device'}
         </p>
         <input
           ref={fileRef} type="file" accept=".xlsx,.xls,.csv" hidden
@@ -85,45 +97,50 @@ export default function Upload({
       </div>
       {err && <div className="notice">⚠ {err}</div>}
 
-      {parsed && (
+      {sheets && (
         <>
           <h2 className="section-title">{t('mapping', lang)}</h2>
           <p className="muted">
             {lang === 'bn'
-              ? `${parsed.rows.length} সারি পড়া হয়েছে। ম্যাপিং ভুল হলে ঠিক করুন — আপনার শব্দচয়ন পরেরবার নিজেই মনে থাকবে।`
-              : `${parsed.rows.length} rows read. Fix any wrong suggestion — your vocabulary is remembered next time.`}
+              ? `${sheets.length} টি শিটে ${totalRows} সারি পড়া হয়েছে। ভুল সাজেশন ঠিক করুন — আপনার শব্দচয়ন মনে থাকবে।`
+              : `${sheets.length} sheet(s), ${totalRows} rows read. Fix any wrong suggestion — your vocabulary is remembered next time.`}
           </p>
-          <div className="card" style={{ padding: 0 }}>
-            <table className="tbl">
-              <thead>
-                <tr><th>{lang === 'bn' ? 'ফাইলের কলাম' : 'Column in file'}</th><th>{lang === 'bn' ? 'ম্যাপ করা হয়েছে' : 'Mapped to'}</th><th>{lang === 'bn' ? 'কনফিডেন্স' : 'Confidence'}</th></tr>
-              </thead>
-              <tbody>
-                {mapping.map((m) => (
-                  <tr key={m.header}>
-                    <td><b>{m.header}</b></td>
-                    <td>
-                      <select value={m.attrKey ?? ''} onChange={(e) => setAttr(m.header, e.target.value)}>
-                        <option value="">— {lang === 'bn' ? 'বাদ দিন' : 'ignore'} —</option>
-                        {DPP_SCHEMA_V01.map((a) => (
-                          <option key={a.key} value={a.key}>{a.en}</option>
-                        ))}
-                      </select>
-                    </td>
-                    <td>
-                      {m.attrKey ? (
-                        <span className={`chip ${m.confidence >= 0.9 ? 'chip-hi' : m.confidence >= 0.72 ? 'chip-md' : 'chip-no'}`}>
-                          {Math.round(m.confidence * 100)}% · {m.method}
-                        </span>
-                      ) : (
-                        <span className="chip chip-neutral">—</span>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          {sheets.map((s, si) => (
+            <div key={s.name} style={{ marginBottom: 18 }}>
+              <b>{s.name}</b>
+              <div className="card" style={{ padding: 0, marginTop: 6 }}>
+                <table className="tbl">
+                  <thead>
+                    <tr><th>{lang === 'bn' ? 'ফাইলের কলাম' : 'Column in file'}</th><th>{lang === 'bn' ? 'ম্যাপ করা হয়েছে' : 'Mapped to'}</th><th>{lang === 'bn' ? 'কনফিডেন্স' : 'Confidence'}</th></tr>
+                  </thead>
+                  <tbody>
+                    {s.mapping.map((m) => (
+                      <tr key={m.header}>
+                        <td><b>{m.header}</b></td>
+                        <td>
+                          <select value={m.attrKey ?? ''} onChange={(e) => setAttr(si, m.header, e.target.value)}>
+                            <option value="">— {lang === 'bn' ? 'বাদ দিন' : 'ignore'} —</option>
+                            {DPP_SCHEMA_V01.map((a) => (
+                              <option key={a.key} value={a.key}>{a.en}</option>
+                            ))}
+                          </select>
+                        </td>
+                        <td>
+                          {m.attrKey ? (
+                            <span className={`chip ${m.confidence >= 0.9 ? 'chip-hi' : m.confidence >= 0.72 ? 'chip-md' : 'chip-no'}`}>
+                              {Math.round(m.confidence * 100)}% · {m.method}
+                            </span>
+                          ) : (
+                            <span className="chip chip-neutral">—</span>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          ))}
           <div className="cta-row" style={{ marginTop: 14 }}>
             <button className="btn btn-primary" disabled={busy} onClick={confirm}>{busy ? '…' : t('confirm', lang)}</button>
           </div>

@@ -45,17 +45,7 @@ export const SAMPLE_SHEETS: SheetSpec[] = [
 
 export const SAMPLE_FACTORY_NAME = 'Shonali Textiles Ltd. (sample data)';
 
-/** Merge all sheets into rows-in for a single ingest demo. */
-export function sampleRows(): { headers: string[]; rows: Record<string, string | number | null>[] } {
-  const headers = SAMPLE_SHEETS.flatMap((s) => s.headers);
-  const uniqueHeaders = [...new Set(headers)];
-  const rows: Record<string, string | number | null>[] = [];
-  for (const sheet of SAMPLE_SHEETS) {
-    for (const r of sheet.rows) {
-      const row: Record<string, string | number | null> = {};
-      sheet.headers.forEach((h, i) => (row[h] = r[i]));
-      rows.push(row);
-    }
-  }
-  return { headers: uniqueHeaders, rows };
+/** Per-sheet view of the sample (each sheet = one department's export). */
+export function sampleSheets(): SheetSpec[] {
+  return SAMPLE_SHEETS;
 }

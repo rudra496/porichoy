@@ -4,8 +4,8 @@ import type { FactoryState } from '../store';
 import { decodeSnapshot, type PassportSnapshot } from '../store';
 import { DPP_SCHEMA_V01, SCHEMA_VERSION } from '../engine/schema';
 import { readinessScore } from '../engine/score';
-import { ingestAsync } from '../ingest';
-import { sampleRows, SAMPLE_FACTORY_NAME } from '../demoData';
+import { ingestSheets } from '../ingest';
+import { sampleSheets, SAMPLE_FACTORY_NAME } from '../demoData';
 
 /** Build a snapshot from a record in state (used for ?id= links). */
 export function snapshotFromState(state: FactoryState, poId: string): PassportSnapshot | null {
@@ -47,11 +47,10 @@ export default function Passport({
         if (s && alive) { setSnap(s); setLoading(false); return; }
         if (!state.records.length) {
           // first-visit demo: build the sample passport in-memory only (never persisted)
-          const { headers, rows } = sampleRows();
-          const res = await ingestAsync(headers, rows, 'sample_demo.xlsx', state);
+          const sheets = sampleSheets().map((s) => ({ name: `${s.name} (sample)`, headers: s.headers, rows: s.rows.map((r) => Object.fromEntries(s.headers.map((h, i) => [h, r[i]]))) }));
+          const { finalState } = await ingestSheets(sheets, state);
           if (!alive) return;
-          const demoState = { ...state, records: res.records, chain: res.chain, factoryName: SAMPLE_FACTORY_NAME };
-          const s2 = snapshotFromState(demoState, id);
+          const s2 = snapshotFromState(finalState, id);
           if (alive) { setSnap(s2); setLoading(false); return; }
         }
       }

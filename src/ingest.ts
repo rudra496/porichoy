@@ -9,6 +9,13 @@ import type { ChainLink } from './engine/provenance';
 import type { FactoryState } from './store';
 import { normalizeHeader } from './engine/mapping';
 
+/** One department's export: its own headers + rows (a sheet or a CSV file). */
+export interface SheetInput {
+  name: string;
+  headers: string[];
+  rows: Record<string, unknown>[];
+}
+
 export interface IngestResult {
   suggestions: ColumnSuggestion[];
   records: DppRecord[];
@@ -62,7 +69,7 @@ export function ingest(
   return { suggestions, records, conflicts, rowsIn, newCount, chain: state.chain };
 }
 
-/** Async ingest: same as ingest() but also extends the hash chain. */
+/** Async ingest: extends the hash chain for every new, keyed record. */
 export async function ingestAsync(
   headers: string[],
   rows: Record<string, unknown>[],
@@ -84,6 +91,23 @@ export async function ingestAsync(
     }
   }
   return { ...base, chain };
+}
+
+/** Ingest several sheets/files sequentially, chaining + merging as we go. */
+export async function ingestSheets(
+  sheets: SheetInput[],
+  state: FactoryState,
+  mappings?: ColumnSuggestion[][],
+): Promise<{ results: IngestResult[]; finalState: FactoryState }> {
+  let cur = state;
+  const results: IngestResult[] = [];
+  for (let i = 0; i < sheets.length; i++) {
+    const s = sheets[i];
+    const res = await ingestAsync(s.headers, s.rows, s.name, cur, mappings?.[i]);
+    cur = mergeState(cur, res);
+    results.push(res);
+  }
+  return { results, finalState: cur };
 }
 
 export function mergeState(state: FactoryState, res: IngestResult): FactoryState {

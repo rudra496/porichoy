@@ -3,8 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import type { FactoryState } from '../store';
 import { readinessScore, scoreBand } from '../engine/score';
 import { t } from '../engine/i18n';
-import { sampleRows, SAMPLE_FACTORY_NAME } from '../demoData';
-import { ingestAsync, mergeState } from '../ingest';
+import { sampleSheets, SAMPLE_FACTORY_NAME } from '../demoData';
+import { ingestSheets } from '../ingest';
 
 export default function Dashboard({
   state,
@@ -26,9 +26,9 @@ export default function Dashboard({
 
   const loadSample = async () => {
     setBusy(true);
-    const { headers, rows } = sampleRows();
-    const res = await ingestAsync(headers, rows, 'sample_demo.xlsx', state);
-    setState((s) => ({ ...mergeState(s, res), factoryName: SAMPLE_FACTORY_NAME }));
+    const sheets = sampleSheets().map((s) => ({ name: `${s.name} (sample)`, headers: s.headers, rows: s.rows.map((r) => Object.fromEntries(s.headers.map((h, i) => [h, r[i]]))) }));
+    const { finalState } = await ingestSheets(sheets, state);
+    setState({ ...finalState, factoryName: SAMPLE_FACTORY_NAME });
     setBusy(false);
   };
 
