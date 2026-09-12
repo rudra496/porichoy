@@ -4,7 +4,7 @@ import { DPP_SCHEMA_V01, TOTAL_WEIGHT } from './schema';
 import { readinessScore } from './score';
 import { makeLink, verifyChain, GENESIS } from './provenance';
 import type { ChainLink } from './provenance';
-import { mergeSheet, processSheet, extendChain } from './ingest';
+import { mergeSheet, processSheet, extendChain } from '../ingest';
 import type { FactoryState } from '../store';
 
 describe('multi-sheet ingest (per-department files)', () => {
