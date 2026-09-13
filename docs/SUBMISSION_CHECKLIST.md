@@ -31,7 +31,7 @@ application bundle (their own form data model) on 2026-09-12. Nothing assumed.
 | Business model | 150 w | drafted, 136 w | ✅ validated |
 | Revenue model | 100 w | drafted, 75 w | ✅ validated |
 | Key partner in mind | — | drafted (pilot factories, buyer sustainability team, cert bodies, global DPP platforms) | ✅ drafted |
-| **Pitch deck: PDF, MAX 6 slides, their template topics (problem, market, solution, business & revenue model, team, women)** | file | `deck/Porichoy_NIC3_Deck.pdf` — 6 slides, exactly their topics, judge-passed 6/6 | ✅ READY TO UPLOAD |
+| **Pitch deck — OFFICIAL TEMPLATE version** ("Download this Slide Deck Template first… work on the file as per its instructions, upload PDF, ≤10 MB, rename file with startup name") | file | `deck/Porichoy_Pitch_Deck.pdf` — built INSIDE their template (8 slides: Title, Problem, Solution, Market, Business & Revenue, Impact, Team, Thank-you; instructions page deleted per its own rule), 0.94 MB, judge-passed 8/8. Upload with the startup-name filename. | ✅ READY TO UPLOAD |
 
 ## D. Environmental section (their data model: SDGGoals, BusinessModel, ChallengeToSolve, EnvironmentalGoal, SocialImpact, Stakeholders, WorkImpact)
 

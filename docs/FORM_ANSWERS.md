@@ -10,7 +10,7 @@
 - **Track:** Existing Solution (open track). Sign-up stage option as required by the
   funnel; detailed "readiness" dropdown: **Launched/Product-market fit**.
 - **Honest staging narrative (use wherever stage is asked in free text):**
-  "Launched September 2026 (public live app); pilot factories in progress; pre-revenue.
+  "Launched August 2026 (public live app); pilot factories in progress; pre-revenue.
   Founding engineer works full-time on Porichoy."
 - **Is your enterprise a registered entity?** "Not yet — a for-profit registration is
   planned during the grant period (permitted under NIC rules: 'may or may not be
@@ -47,7 +47,7 @@ automated engine tests: rudra496.github.io/porichoy
 
 ## Q: Current stage of readiness/maturity
 
-Launched/Product-market fit — product live (September 2026), pilot onboarding in
+Launched/Product-market fit — product live (August 2026), pilot onboarding in
 progress, pre-revenue by design until the 10-factory pilot begins.
 
 ## Q: Describe the business model of your enterprise. (≤150 words)
